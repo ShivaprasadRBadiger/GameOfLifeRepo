@@ -6,13 +6,14 @@ using UnityEngine.UI;
 using Random = System.Random;
 namespace GOL
 {
-	public class World : MonoBehaviour
+	public class World : MonoBehaviour, IWorld
 	{
 		Cell[] cells;
 		Texture2D worldView;
 		Random randGen;
 		float tickTimer;
 
+		private bool isInitialized = false;
 		[SerializeField]
 		int worldSize;
 		[SerializeField]
@@ -34,7 +35,14 @@ namespace GOL
 			Vector2Int.down+Vector2Int.left,
 			Vector2Int.down+Vector2Int.right,
 		};
-		private void Start()
+		public void StartWorld(string seed, int size, float speed)
+		{
+			worldSeed = seed;
+			worldSize = size;
+			tickDelay = 1 - speed;
+			Initialize();
+		}
+		private void Initialize()
 		{
 			randGen = new Random(worldSeed.GetHashCode());
 			cells = new Cell[worldSize * worldSize];
@@ -50,6 +58,7 @@ namespace GOL
 			}
 			UpdateView();
 			tickTimer = tickDelay;
+			isInitialized = true;
 		}
 
 		private CellState GetRandomState(float x, float y)
@@ -57,18 +66,20 @@ namespace GOL
 			return randGen.Next(1, 100) > 50 ? CellState.LIVE : CellState.DEAD;
 		}
 
-
 		void Update()
 		{
-			if (tickTimer > 0)
+			if (isInitialized)
 			{
-				tickTimer -= Time.deltaTime;
-			}
-			else
-			{
-				UpdateLogic();
-				UpdateView();
-				tickTimer = tickDelay;
+				if (tickTimer > 0)
+				{
+					tickTimer -= Time.deltaTime;
+				}
+				else
+				{
+					UpdateLogic();
+					UpdateView();
+					tickTimer = tickDelay;
+				}
 			}
 		}
 
